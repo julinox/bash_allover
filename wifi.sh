@@ -1,10 +1,10 @@
 #! /bin/sh
 ### BEGIN INIT INFO
 # Provides:          	wifi
-# Required-Start:		$network
-# Required-Stop:		$network
-# Default-Start:		2 3 4 5
-# Default-Stop:			0 1 6
+# Required-Start:	$network
+# Required-Stop:	$network
+# Default-Start:	2 3 4 5
+# Default-Stop:		0 1 6
 # Short-Description:	Starts and stops a wifi connection
 # Description:       	Starts and stops a wifi connection.
 ### END INIT INFO
