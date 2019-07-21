@@ -57,12 +57,11 @@ set_ifname()
 {
     # Default wlan interface (to connect) is wlan0
     # Enviroment variable 'WLAN_IFNAME' can be used
-    # used to overwrite default interface name
+    # to overwrite the default interface name
     [ ! -z "$WLAN_IFNAME" ] && Ifname=$WLAN_IFNAME
 
-    # Checking if interface exist | Also assuming /sys
-    # directory is mounted
-    ls /sys/class/net | grep -wq $Ifname
+    # Checking if interface exist 
+    cat /proc/net/dev | grep -wq $Ifname
     assert "$? -eq 0" "Interface '$Ifname' unknow"
 }
 
@@ -72,7 +71,8 @@ set_ifname()
 do_start()
 {
     set_ifname
-    # Checking if wpa_supplicant is runnuing
+    
+    # Checking if wpa_supplicant is running
     ps aux | grep -i wpa_supplicant | grep -vq grep
 
     if [ $? -eq 0 ]; then
@@ -89,7 +89,17 @@ do_start()
     assert "$? -eq 0" "dhclient missing"
 
     # launch it
-    echo "Conecta a: $Ifname"
+    $Wsupplicant -i $Ifname -c /etc/wpa_supplicant.conf -B
+    if [ $? -ne 0 ]; then
+		log_failure_msg "Error starting wifi.sh"
+		return 2
+    fi
+    dhclient $Ifname
+    if [ $? -ne 0 ]; then
+		log_failure_msg "dhclient error"
+		return 3
+    fi
+    log_success_msg "Wifi Started"
 }
 
 #
@@ -97,14 +107,33 @@ do_start()
 #
 do_stop()
 {
-    Return 0
+    $Dhcpcli -r $Ifname
+    pkill wpa_supplicant
+    log_success_msg "Wifi Stopped"
 }
 
 #
 # Function that sends a SIGHUP to the daemon/service
 #
-do_reload() {
-	return 0
+do_reload()
+{
+	do_stop
+	do_start
+}
+
+do_status()
+{
+	ps aux | grep -i wpa_supplicant | grep -vq grep
+    if [ $? -ne 0 ]; then
+        log_warning_msg "Wifi not running"
+        return 1
+    fi
+    ps axo command | grep dhcl | grep -wq $Ifname
+	if [ $? -ne 0 ]; then
+        log_warning_msg "Wifi not running"
+        return 1
+    fi
+    log_success_msg "Wifi Running"
 }
 
 case "$1" in
@@ -112,16 +141,13 @@ case "$1" in
     do_start
     ;;
   stop)
-    echo "Case Stop"
-    #do_stop
+    do_stop
     ;;
   restart|reload)
-    #log_daemon_msg "Restarting $DESC" "$NAME"
-    #do_stop
-    echo "Case Restart/Reload"
+    do_reload
     ;;
   status)
-	echo "Caxse Status"
+	do_status
 	;;
   *)
     echo "Usage: $Thiscript {start|stop|restart|force-reload|status}" >&2
