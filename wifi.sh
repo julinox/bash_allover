@@ -1,8 +1,8 @@
 #! /bin/sh
 ### BEGIN INIT INFO
 # Provides:             wifi
-# Required-Start:       $network
-# Required-Stop:        $network
+# Required-Start:       $syslog $remote_fs
+# Required-Stop:        $syslog $remote_fs
 # Default-Start:        2 3 4 5
 # Default-Stop:	        0 1 6
 # Short-Description:    Starts and stops a wifi connection
