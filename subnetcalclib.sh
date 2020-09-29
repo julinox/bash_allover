@@ -178,9 +178,9 @@ function get_net_addr_first
         return 1
     fi
     
-    local b1=$(echo "$net" | cut -d '.' -f4)
-    local b2=$(echo "$net" | cut -d '.' -f4)
-    local b3=$(echo "$net" | cut -d '.' -f4)
+    local b1=$(echo "$net" | cut -d '.' -f1)
+    local b2=$(echo "$net" | cut -d '.' -f2)
+    local b3=$(echo "$net" | cut -d '.' -f3)
     local b4=$(echo "$net" | cut -d '.' -f4)
     local new_b4="$(( $b4 + 1 ))"
     echo "$b1.$b2.$b3.$new_b4"
